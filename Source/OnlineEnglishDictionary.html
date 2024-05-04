@@ -37,17 +37,13 @@ function buttonLookUp_Clicked()
 	var wordToLookUp = inputWordToLookUp.value;
 	if (wordToLookUp.length > 0)
 	{
-		var wordToLookUpFirstLetter = wordToLookUp[0];
+		var wordToLookUpFirstLetter = wordToLookUp[0].toUpperCase();
 		var fileNameForLetter = wordToLookUpFirstLetter + ".txt";
 		var filePathForLetter = "../Data/" + fileNameForLetter;
-		var file = fetch
-		(
-			filePathForLetter,
-			(fileLoaded) =>
-			{
-				var todo = "todo";
-			}
-		);
+		var fetchResponse = fetch(filePathForLetter);
+		fetchResponse
+			.then(response => response.json() )
+			.then(data => console.log(data) );
 	}
 }
 
