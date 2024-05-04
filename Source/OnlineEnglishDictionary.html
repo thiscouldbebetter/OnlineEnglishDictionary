@@ -1,0 +1,57 @@
+<html>
+<body>
+
+<div id="divUi">
+
+	<h3>Online English Dictionary</h3>
+
+	<p>
+		Enter a word to look up and click the Find button
+		to see a definition of the word, if available.
+	</p>
+
+	<div>
+		<label>Word to Look Up:</label>
+		<input id="inputWordToLookUp"></input>
+		<button onclick="buttonLookUp_Clicked()">Look Up</button>
+	</div>
+
+	<div>
+		<label>Definition:</label>
+		<br />
+		<div id="divOutput">[none]</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+// UI event handlers.
+
+function buttonLookUp_Clicked()
+{
+	alert("Not yet implemented!");
+
+	var d = document;
+	var inputWordToLookUp = 
+		d.getElementById("inputWordToLookUp");
+	var wordToLookUp = inputWordToLookUp.value;
+	if (wordToLookUp.length > 0)
+	{
+		var wordToLookUpFirstLetter = wordToLookUp[0];
+		var fileNameForLetter = wordToLookUpFirstLetter + ".txt";
+		var filePathForLetter = "../Data/" + fileNameForLetter;
+		var file = fetch
+		(
+			filePathForLetter,
+			(fileLoaded) =>
+			{
+				var todo = "todo";
+			}
+		);
+	}
+}
+
+</script>
+
+</body>
+</html>
