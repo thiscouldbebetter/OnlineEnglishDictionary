@@ -34,6 +34,8 @@ function buttonLookUp_Clicked()
 	var d = document;
 	var inputWordToLookUp = 
 		d.getElementById("inputWordToLookUp");
+	var divOutput = d.getElementById("divOutput");
+
 	var wordToLookUp = inputWordToLookUp.value;
 	if (wordToLookUp.length > 0)
 	{
@@ -42,8 +44,25 @@ function buttonLookUp_Clicked()
 		var filePathForLetter = "../Data/" + fileNameForLetter;
 		var fetchResponse = fetch(filePathForLetter);
 		fetchResponse
-			.then(response => response.json() )
-			.then(data => console.log(data) );
+			.then(response => response.text() )
+			.then
+			(
+				fileText =>
+				{
+					console.log(fileText);
+
+					var fileEntries = fileText.split("\r\n\r\n\r\n");
+					var fileEntryMatchingWordToLookUp =
+						fileEntries.find(x => x.startsWith(wordToLookUp) );
+
+					var wordDefinitionOrErrorMessage =
+						fileEntryMatchingWordToLookUp == null
+						? "No entry found for '" + wordToLookUp + "'."
+						: fileEntryMatchingWordToLookUp;
+
+					divOutput.innerHTML = wordDefinitionOrErrorMessage;
+				}
+			);
 	}
 }
 
