@@ -39,7 +39,8 @@ function buttonLookUp_Clicked()
 	var wordToLookUp = inputWordToLookUp.value;
 	if (wordToLookUp.length > 0)
 	{
-		var wordToLookUpFirstLetter = wordToLookUp[0].toUpperCase();
+		wordToLookUp = wordToLookUp.toUpperCase();
+		var wordToLookUpFirstLetter = wordToLookUp[0];
 		var fileNameForLetter = wordToLookUpFirstLetter + ".txt";
 		var filePathForLetter = "../Data/" + fileNameForLetter;
 		var fetchResponse = fetch(filePathForLetter);
@@ -51,14 +52,27 @@ function buttonLookUp_Clicked()
 				{
 					console.log(fileText);
 
-					var fileEntries = fileText.split("\r\n\r\n\r\n");
+					var newline = "\r\n";
+					var threeNewlines = newline + newline + newline;
+
+					var fileEntries = fileText.split(threeNewlines);
 					var fileEntryMatchingWordToLookUp =
-						fileEntries.find(x => x.startsWith(wordToLookUp) );
+						fileEntries
+							.find
+							(
+								x =>
+									x.split("; ")
+										.some(y => y == wordToLookUp)
+							);
 
 					var wordDefinitionOrErrorMessage =
 						fileEntryMatchingWordToLookUp == null
 						? "No entry found for '" + wordToLookUp + "'."
 						: fileEntryMatchingWordToLookUp;
+
+					wordDefinitionOrErrorMessage =
+						wordDefinitionOrErrorMessage
+						.split(newline).join("<br />");
 
 					divOutput.innerHTML = wordDefinitionOrErrorMessage;
 				}
