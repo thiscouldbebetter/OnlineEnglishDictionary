@@ -29,8 +29,6 @@
 
 function buttonLookUp_Clicked()
 {
-	alert("Not yet implemented!");
-
 	var d = document;
 	var inputWordToLookUp = 
 		d.getElementById("inputWordToLookUp");
@@ -50,25 +48,23 @@ function buttonLookUp_Clicked()
 			(
 				fileText =>
 				{
-					console.log(fileText);
-
 					var newline = "\r\n";
 					var threeNewlines = newline + newline + newline;
 
 					var fileEntries = fileText.split(threeNewlines);
-					var fileEntryMatchingWordToLookUp =
-						fileEntries
-							.find
+					var fileEntriesMatchingWordToLookUp = fileEntries.filter
+					(
+						x =>
+							x.split("; ").some
 							(
-								x =>
-									x.split("; ")
-										.some(y => y == wordToLookUp)
-							);
+								y => y.startsWith(wordToLookUp + newline)
+							)
+					);
 
 					var wordDefinitionOrErrorMessage =
-						fileEntryMatchingWordToLookUp == null
-						? "No entry found for '" + wordToLookUp + "'."
-						: fileEntryMatchingWordToLookUp;
+						fileEntriesMatchingWordToLookUp.length == 0
+						? "No entries found for '" + wordToLookUp + "'."
+						: fileEntriesMatchingWordToLookUp.join(threeNewlines);
 
 					wordDefinitionOrErrorMessage =
 						wordDefinitionOrErrorMessage
