@@ -1,5 +1,5 @@
 <html>
-<body>
+<body onload="body_Loaded()">
 
 <div id="divUi">
 
@@ -10,10 +10,24 @@
 		to see a definition of the word, if available.
 	</p>
 
+	<p>
+		(This dictionary is adapted from an edition of
+		Webster's Unabridged Dictionary originally published
+		in 1913, which was later
+		<a href='https://gutenberg.org/ebooks/29765'>
+		transcribed as part of Project Gutenberg</a>.
+		This work is in the public domain in most territories.)
+	</p>
+
 	<div>
 		<label>Word to Look Up:</label>
 		<input id="inputWordToLookUp"></input>
-		<button onclick="buttonLookUp_Clicked()">Look Up</button>
+		<button
+			type="submit"
+			onclick="buttonLookUp_Clicked()"
+		>
+			Look Up
+		</button>
 	</div>
 
 	<div>
@@ -27,52 +41,147 @@
 
 // UI event handlers.
 
+function body_KeyDown(event)
+{
+	if (event.key == "Enter")
+	{
+		buttonLookUp_Clicked();
+		var d = document;
+		var inputWordToLookUp = 
+			d.getElementById("inputWordToLookUp");
+		inputWordToLookUp.value = "";
+		
+	}
+}
+
+function body_Loaded()
+{
+	document.body.onkeydown = body_KeyDown;
+
+	var urlParser = UrlParser.fromWindow();
+	var wordToLookUp =
+		urlParser.queryStringParameterByName("word");
+	if (wordToLookUp != null)
+	{
+		Dictionary.wordLookUpAndSendToCallback
+		(
+			wordToLookUp,
+			(wordDefinitionOrErrorMessage) =>
+			{
+				var d = document;
+				var divOutput = d.getElementById("divOutput");
+				divOutput.innerHTML = wordDefinitionOrErrorMessage;
+			}
+		);
+	}
+}
+
 function buttonLookUp_Clicked()
 {
 	var d = document;
+
 	var inputWordToLookUp = 
 		d.getElementById("inputWordToLookUp");
-	var divOutput = d.getElementById("divOutput");
-
 	var wordToLookUp = inputWordToLookUp.value;
-	if (wordToLookUp.length > 0)
+
+	window.location =
+		window.location.toString().split("?")[0]
+		+ "?word="
+		+ wordToLookUp;
+
+	Dictionary.wordLookUpAndSendToCallback
+	(
+		wordToLookUp,
+
+		(wordDefinitionOrErrorMessage) =>
+		{
+			var divOutput = d.getElementById("divOutput");
+			divOutput.innerHTML = wordDefinitionOrErrorMessage;
+		}
+	);
+}
+
+class Dictionary
+{
+	static wordLookUpAndSendToCallback(wordToLookUp, callback)
 	{
-		wordToLookUp = wordToLookUp.toUpperCase();
-		var wordToLookUpFirstLetter = wordToLookUp[0];
-		var fileNameForLetter = wordToLookUpFirstLetter + ".txt";
-		var filePathForLetter = "../Data/" + fileNameForLetter;
-		var fetchResponse = fetch(filePathForLetter);
-		fetchResponse
-			.then(response => response.text() )
-			.then
-			(
-				fileText =>
-				{
-					var newline = "\r\n";
-					var threeNewlines = newline + newline + newline;
+		if (wordToLookUp.length > 0)
+		{
+			wordToLookUp = wordToLookUp.toUpperCase();
+			var wordToLookUpFirstLetter = wordToLookUp[0];
+			var fileNameForLetter = wordToLookUpFirstLetter + ".txt";
+			var filePathForLetter = "../Data/" + fileNameForLetter;
+			var fetchResponse = fetch(filePathForLetter);
+			fetchResponse
+				.then(response => response.text() )
+				.then
+				(
+					fileText =>
+					{
+						var newline = "\r\n";
+						var threeNewlines = newline + newline + newline;
 
-					var fileEntries = fileText.split(threeNewlines);
-					var fileEntriesMatchingWordToLookUp = fileEntries.filter
-					(
-						x =>
-							x.split("; ").some
-							(
-								y => y.startsWith(wordToLookUp + newline)
-							)
-					);
+						var fileEntries = fileText.split(threeNewlines);
+						var fileEntriesMatchingWordToLookUp = fileEntries.filter
+						(
+							x =>
+								x.split("; ").some
+								(
+									y => y.startsWith(wordToLookUp + newline)
+								)
+						);
 
-					var wordDefinitionOrErrorMessage =
-						fileEntriesMatchingWordToLookUp.length == 0
-						? "No entries found for '" + wordToLookUp + "'."
-						: fileEntriesMatchingWordToLookUp.join(threeNewlines);
+						var wordDefinitionOrErrorMessage =
+							fileEntriesMatchingWordToLookUp.length == 0
+							? "No entries found for '" + wordToLookUp + "'."
+							: fileEntriesMatchingWordToLookUp.join(threeNewlines);
 
-					wordDefinitionOrErrorMessage =
-						wordDefinitionOrErrorMessage
-						.split(newline).join("<br />");
+						wordDefinitionOrErrorMessage =
+							wordDefinitionOrErrorMessage
+							.split(newline).join("<br />");
 
-					divOutput.innerHTML = wordDefinitionOrErrorMessage;
-				}
-			);
+						callback(wordDefinitionOrErrorMessage);
+					}
+				); // end fetchResponse.then().then()
+		} // end if
+	} // end method
+}
+
+// Classes.
+
+class UrlParser
+{
+	constructor(urlAsString)
+	{
+		this.urlAsString = urlAsString;
+
+		this.queryStringParametersByName = new Map();
+
+		// todo - Make sure regex converts to string correctly.
+		var indexOfQuestionMark = this.urlAsString.indexOf("?");
+		if (indexOfQuestionMark >= 0)
+		{
+			var parametersAsString = this.urlAsString.substr(indexOfQuestionMark + 1);
+			var parametersAsStrings = parametersAsString.split("&");
+			for (var i = 0; i < parametersAsStrings.length; i++)
+			{
+				var parameterAsString = parametersAsStrings[i];
+				var parameterNameAndValue = parameterAsString.split("=");
+				var parameterName = parameterNameAndValue[0];
+				var parameterValue = parameterNameAndValue[1];
+				this.queryStringParametersByName.set(parameterName, parameterValue);
+			}
+		}
+	}
+
+	queryStringParameterByName(parameterName)
+	{
+		return this.queryStringParametersByName.get(parameterName);
+	}
+
+	static fromWindow()
+	{
+		return new UrlParser(window.location.toString());
 	}
 }
 
